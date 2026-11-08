@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGTV LUIS</title>
+    <!-- Fuente premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 1. Pantalla de Iniciar Sesión (Login) -->
+        <div id="login-view" class="view active">
+            <div class="glass-card login-card animate-fade-in">
+                <div class="brand">
+                    <img src="agtv_logo.png" alt="AGTV LUIS Logo" class="brand-logo-img">
+                    <h1>AGTV <span>LUIS</span></h1>
+                    <p class="subtitle">Stream Premium Player</p>
+                </div>
+                
+                <!-- Pestañas de Login -->
+                <div class="login-tabs">
+                    <button type="button" class="login-tab-btn active" data-login-type="xtream">Xtream Codes API</button>
+                    <button type="button" class="login-tab-btn" data-login-type="m3u">Lista M3U</button>
+                </div>
+
+                <!-- Formulario Xtream Codes -->
+                <form id="login-form" class="login-tab-content active">
+                    <div class="input-group">
+                        <label for="server-url">Servidor / URL del Host</label>
+                        <input type="text" id="server-url" required placeholder="http://servidor.com:8080">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" required placeholder="Tu usuario">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" required placeholder="Tu contraseña">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-glow" style="margin-top: 20px;">
+                        <span class="btn-text">Iniciar Sesión (Xtream)</span>
+                        <div class="spinner hidden" id="login-spinner"></div>
+                    </button>
+                </form>
+
+                <!-- Formulario Lista M3U -->
+                <form id="login-m3u-form" class="login-tab-content">
+                    <div class="input-group">
+                        <label for="m3u-url">Enlace M3U (.m3u / .m3u8)</label>
+                        <textarea id="m3u-url" required placeholder="Pega tu enlace M3U aquí..." rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-glow" style="margin-top: 20px; background: linear-gradient(135deg, var(--secondary), var(--secondary-glow)); color: #06040d;">
+                        <span class="btn-text">Iniciar Sesión (Lista M3U)</span>
+                        <div class="spinner hidden" id="login-m3u-spinner"></div>
+                    </button>
+                </form>
+
+                <div class="error-msg hidden" id="login-error"></div>
+
+                <!-- Aviso legal y de conformidad para Play Store -->
+                <div class="disclaimer-box" style="margin-top: 15px; font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.4;">
+                    Esta aplicación es únicamente un reproductor multimedia y no incluye ni distribuye ningún contenido. El usuario debe suministrar su propio acceso legal.
+                </div>
+
+                <!-- Cuentas Guardadas -->
+                <div id="saved-accounts-section" class="saved-accounts-wrapper hidden">
+                    <div class="saved-accounts-title">Cuentas Guardadas</div>
+                    <div id="saved-accounts-list" class="saved-accounts-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Pantalla Principal (Dashboard) -->
+        <div id="main-view" class="view">
+            <!-- Barra superior -->
+            <header class="app-header glass-panel">
+                <div class="brand-small">
+                    <img src="agtv_logo.png" alt="AGTV Logo" class="brand-logo-small-img">
+                    <h2>AGTV <span>LUIS</span></h2>
+                </div>
+                <div class="user-status-container">
+                    <div class="player-toggle-wrapper" title="Activar modo oscuro puro AMOLED Black para ahorrar batería">
+                        <span class="toggle-label">Modo AMOLED</span>
+                        <label class="switch">
+                            <input type="checkbox" id="amoled-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="player-toggle-wrapper" title="Reproducir canales y películas usando VLC externo">
+                        <span class="toggle-label">Rep. Externo (VLC)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="external-player-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="player-toggle-wrapper" title="Forzar formato HLS (.m3u8) para activar audio AAC compatible">
+                        <span class="toggle-label">Formato HLS</span>
+                        <label class="switch">
+                            <input type="checkbox" id="hls-format-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <span id="account-status" class="status-badge">Activo</span>
+                    <button id="logout-btn" class="btn-icon" title="Cerrar Sesión">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Pestañas de Navegación superior -->
+            <nav class="nav-tabs glass-panel">
+                <button class="tab-btn active" data-tab="live">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+                    <span>En Vivo</span>
+                </button>
+                <button class="tab-btn" data-tab="movies">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="2" width="20" height="15" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="17"/><line x1="17" y1="2" x2="17" y2="17"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M2 17h20v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4z"/></svg>
+                    <span>Películas</span>
+                </button>
+                <button class="tab-btn" data-tab="series">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>
+                    <span>Series</span>
+                </button>
+                <button class="tab-btn" data-tab="favorites">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span>Favoritos</span>
+                </button>
+                <button class="tab-btn" data-tab="downloads">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    <span>Descargas</span>
+                </button>
+            </nav>
+
+            <!-- Contenido Principal -->
+            <main class="dashboard-content">
+                <!-- Buscador -->
+                <div class="search-container">
+                    <div class="search-wrapper glass-panel">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="search-input" placeholder="Buscar canales o películas...">
+                        <button id="clear-search" class="hidden">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Columnas: Categorías y Canales -->
+                <div class="content-split">
+                    <!-- Panel izquierdo: Categorías -->
+                    <aside class="sidebar-categories glass-panel">
+                        <div class="sidebar-header">Categorías</div>
+                        <div class="categories-list" id="categories-container">
+                            <!-- Categorías dinámicas -->
+                            <div class="skeleton-category"></div>
+                            <div class="skeleton-category"></div>
+                            <div class="skeleton-category"></div>
+                        </div>
+                    </aside>
+
+                    <!-- Panel derecho: Lista de canales -->
+                    <section class="streams-section">
+                        <!-- Sección de Canales Recientes (carrusel horizontal) -->
+                        <div id="recent-container" class="recent-channels-wrapper hidden">
+                            <div class="recent-title-row">
+                                <h3 class="recent-section-title">Reproducidos Recientemente</h3>
+                                <button id="clear-recents-btn" class="clear-recents-btn">Limpiar</button>
+                            </div>
+                            <div class="recent-channels-list" id="recent-channels-list"></div>
+                        </div>
+
+                        <div class="streams-grid" id="streams-container">
+                            <!-- Canales dinámicos -->
+                            <div class="skeleton-card"></div>
+                            <div class="skeleton-card"></div>
+                            <div class="skeleton-card"></div>
+                            <div class="skeleton-card"></div>
+                            <div class="skeleton-card"></div>
+                            <div class="skeleton-card"></div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Contenedor para Notificaciones flotantes (Toasts) -->
+    <div id="toast-container"></div>
+
+    <!-- Modal de Detalles de Película (Glassmorphism) -->
+    <div id="movie-details-modal" class="modal-overlay hidden">
+        <div class="glass-card modal-content animate-zoom-in">
+            <button id="close-modal-btn" class="close-btn">&times;</button>
+            <div class="modal-body">
+                <div class="modal-poster-wrapper">
+                    <img id="modal-movie-poster" src="" alt="Poster">
+                </div>
+                <div class="modal-info-wrapper">
+                    <h2 id="modal-movie-title">Título de la Película</h2>
+                    <div class="modal-meta-tags">
+                        <span id="modal-movie-year" class="meta-tag">Año</span>
+                        <span id="modal-movie-duration" class="meta-tag">Duración</span>
+                        <span id="modal-movie-rating" class="meta-tag">Rating</span>
+                    </div>
+                    <p id="modal-movie-genre" class="movie-genre">Género</p>
+                    <p id="modal-movie-description" class="movie-description">Sinopsis de la película...</p>
+                    <div class="modal-cast">
+                        <p><strong>Director:</strong> <span id="modal-movie-director">Nombre</span></p>
+                        <p><strong>Reparto:</strong> <span id="modal-movie-actors">Actores</span></p>
+                    </div>
+                    <div class="modal-actions">
+                        <button id="modal-play-btn" class="btn btn-primary btn-glow">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span>Reproducir</span>
+                        </button>
+                        <button id="modal-play-ext-btn" class="btn btn-glow" style="background: rgba(0, 242, 254, 0.05); border: 1px solid var(--secondary); color: var(--secondary);">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span>VLC (Ext)</span>
+                        </button>
+                        <button id="modal-fav-btn" class="btn btn-secondary">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <span>Favorito</span>
+                        </button>
+                        <button id="modal-download-btn" class="btn btn-secondary" title="Descargar película para ver sin conexión">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            <span>Descargar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cargar lógica principal -->
+    <script src="app.js"></script>
+</body>
+</html>
